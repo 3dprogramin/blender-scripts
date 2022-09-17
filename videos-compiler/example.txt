@@ -1,0 +1,34 @@
+# ************************************************
+# Example of videos-input.txt
+# ************************************************
+
+
+# --------------------------------------------
+# if # in a line, rest after it is commented
+# --------------------------------------------
+
+# define the path
+%path=/work/YT/videos/rhodos/videos/card2
+
+# what extensions to support
+%extensions=.mp4,.mov,.avi
+
+# scene
+# starting with %%, it's a movie scene, in final video only that part
+# will show up
+# -----------------------------------------------------------------------
+%% GH010514 - 00:38 - end		# me, starting the day
+%% GH010515 - 02:30 - 05:08  		# getting on the boat
+%% GH020515 - 00:35 - 01:27 		# almost taking seat on the boat
+%% GH010516 - 00:00 - END    		# took seat
+%% GH010518 - start - 01:17  		# mike explica la inceput
+%% GH010519 - start - 01:40  		# top of boat, smoking
+%% GH010520 - start - 00:30  		# first scoba, first time in water
+%% GH010520 - 01:50 - 02:20  		# first scoba, first time in water
+
+
+# start/START and end/END are accepted
+# start is always 00:00, but end is defined as 05:19 (gopro videos) by default
+# you can adjust it from the script
+
+# if your videos don't have the same length, don't use end and all will be fine
