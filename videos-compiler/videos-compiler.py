@@ -204,8 +204,8 @@ class App:
         for strip in bpy.context.scene.sequence_editor.sequences:
             if strip.channel == 1:
                 last_object_first_channel = strip.frame_final_end
-                break            
         
+        # calculate based on positions
         if move_object_frame_start > last_object_first_channel:
             x = (move_object_frame_start - last_object_first_channel) * -1
         else:
@@ -214,7 +214,7 @@ class App:
 
 def main():        
     c = ConfigParser()
-    scenes = c.parse_file('/home/icebox/Documents/programming/blender/test_gui/example-test.txt')
+    scenes = c.parse_file('/home/icebox/Desktop/example.txt')
 
     # clear the sequencer of all objects
     Blender.clean_sequencer({"area": Blender.find_sequence_editor()})
@@ -225,9 +225,9 @@ def main():
     for scene in scenes:
         sequence_editor_context = {"area": Blender.find_sequence_editor()}
         filename = os.path.basename(scene['full_path'])
-        
+
         print(f'Video path: {scene["full_path"]}')
-        
+
         # clear the channel 4
         Blender.select_all_from_channel(4)
         Blender.clean_sequencer(sequence_editor_context, delete_only=True)
