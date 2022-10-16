@@ -10,6 +10,11 @@ FPS = 60
 # 05:19 is for GoPro Hero 8
 VIDEOS_LENGTH = '05:19'
 
+# for title and subtitle at start
+EXTRA_PROCESSING = True
+TITLE = '[Motocross]'
+SUBTITLE = "Spre Maramu'"
+
 class ConfigParser:
     def __init__(self) -> None:
         self.items = []
@@ -156,7 +161,58 @@ class Blender:
         # select all strips in active channel
         for strip in sequences:
             strip.select = strip.channel == active_channel
+    
+    @staticmethod
+    def get_first_clip(channel: int = 1, last = False):
+        context = bpy.context
+        scene = context.scene
 
+        sed = scene.sequence_editor
+        # if active strip isn't in active_channel set to None.
+        if getattr(sed.active_strip, "channel", -1) != channel:
+            sed.active_strip = None
+
+        sequences = sed.sequences_all
+        # select all strips in active channel
+        for strip in sequences:
+            if strip.channel == channel:
+                if not last:
+                    return strip
+        # return the last one    
+        return strip
+
+    @staticmethod
+    def get_clip(name):
+        context = bpy.context
+        scene = context.scene
+
+        sed = scene.sequence_editor
+        sequences = sed.sequences_all
+        # select all strips in active channel
+        for strip in sequences:
+            if strip.name == name:
+                return strip
+                
+        raise Exception('could not find clip by name: ' + name)
+
+    @staticmethod
+    def get_title_subtitle():
+        context = bpy.context
+        scene = context.scene
+
+        sed = scene.sequence_editor
+
+        t = {}
+        sequences = sed.sequences_all
+        # select all strips in active channel
+        for strip in sequences:
+            if strip.channel == 6:
+                t['title'] = strip
+            elif strip.channel == 5 and 'subtitle' not in t:        
+                t['subtitle'] = strip
+        return t
+        
+    
 class App:
     # cut the video, 3 different cases
     # - cut one time
@@ -216,8 +272,10 @@ def main():
     c = ConfigParser()
     scenes = c.parse_file('/home/icebox/Desktop/example.txt')
 
-    # clear the sequencer of all objects
-    Blender.clean_sequencer({"area": Blender.find_sequence_editor()})
+    # clear the sequencer of all objects on working channels
+    for i in range(1, 5):
+        Blender.select_all_from_channel(i)
+        Blender.clean_sequencer({"area": Blender.find_sequence_editor()}, delete_only=True)
     
     # add scenes
     i = 1
@@ -234,6 +292,7 @@ def main():
         
         # add movie strip (with audio) 
         bpy.ops.sequencer.movie_strip_add(sequence_editor_context, filepath=scene['full_path'], directory=os.path.dirname(scene['full_path']), files=[{"name":filename, "name":filename}], show_multiview=False, frame_start=1, channel=3, fit_method='FIT', set_view_transform=False, use_framerate=False)
+        
         # combine them
         bpy.ops.sequencer.meta_make()
         
@@ -252,6 +311,41 @@ def main():
         Blender.select_all_from_channel(4)
         Blender.clean_sequencer(sequence_editor_context, delete_only=True)
         i += 1
+    
+    
+    # ---------------------------------------
+    # the video is built at this point
+    # but we are doing some extra processing
+    # changing some text, blend, etc
+    # ---------------------------------------
+    if EXTRA_PROCESSING:
+        # set title and subtitle
+        # -----------------------------------------------------
+        strips = Blender.get_title_subtitle()
+        strips['title'].text = TITLE
+        strips['subtitle'].text = SUBTITLE
+        
+        # create blend for first video
+        # -----------------------------------------------------
+        first_clip = Blender.get_clip('MetaStrip.001')
+        #print('first clip', first_clip)
+        #print(first_clip.name)
+        
+        # make it 0 at first
+        first_clip.blend_alpha = 0
+        first_clip.keyframe_insert("blend_alpha", frame=100)
+
+        first_clip.blend_alpha = 100
+        first_clip.keyframe_insert("blend_alpha", frame=400)    
+        
+        
+        # set end frame (not working yet)
+        # ----------------------------------
+        #last_clip = Blender.get_first_clip(last=True)
+        #print('final frame', last_clip.frame_final_end)
+        #bpy.context.scene.frame_end = last_clip.frame_final_end
+    
+    
 
 if __name__ == "__main__":
     print('Script started')
